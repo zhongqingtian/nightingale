@@ -35,13 +35,13 @@ func push(args []*dataobj.IndexModel, reply *dataobj.IndexResp) {
 	for _, item := range args {
 		logger.Debugf("<---index %v", item)
 
-		if item.Nid != "" {
+		if item.Nid != "" { // 网络接口索引
 			cache.NidIndexDB.Push(*item, now)
 		} else {
 			cache.IndexDB.Push(*item, now)
 		}
 	}
 
-	reply.Total = len(args)
-	reply.Latency = (time.Now().UnixNano() - start.UnixNano()) / 1000000
+	reply.Total = len(args)                                              // 返回总数
+	reply.Latency = (time.Now().UnixNano() - start.UnixNano()) / 1000000 // 处理时间
 }

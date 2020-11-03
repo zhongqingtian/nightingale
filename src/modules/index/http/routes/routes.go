@@ -22,7 +22,7 @@ func Config(r *gin.Engine) {
 		sys.POST("/counter/fullmatch", GetIndexByFullTags)
 		sys.POST("/counter/clude", GetIndexByClude)
 		sys.POST("/dump", DumpIndex)
-		sys.GET("/idxfile", GetIdxFile)
+		sys.GET("/idxfile", GetIdxFile) // 获取索引文件
 	}
 
 	pprof.Register(r, "/api/index/debug/pprof")

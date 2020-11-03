@@ -43,25 +43,25 @@ var semaPermanence = semaphore.NewSemaphore(1)
 func InitDB(cfg CacheSection) {
 	Config = cfg
 
-	IndexDB = &EndpointIndexMap{M: make(map[string]*MetricIndexMap)}
+	IndexDB = &EndpointIndexMap{M: make(map[string]*MetricIndexMap)} // 初始化指针类型值变量
 	NidIndexDB = &EndpointIndexMap{M: make(map[string]*MetricIndexMap)}
-	NewEndpoints = list.NewSafeListLimited(100000)
+	NewEndpoints = list.NewSafeListLimited(100000) // 10000容量的endPoints list
 
 	Rebuild(Config.PersistDir, Config.RebuildWorker)
 
-	go StartCleaner(Config.CleanInterval, Config.CacheDuration)
-	go StartPersist(Config.PersistInterval)
+	go StartCleaner(Config.CleanInterval, Config.CacheDuration) // 定时清理缓存，有效时间检查
+	go StartPersist(Config.PersistInterval)                     // 定时更新 目录，清理打包，给权限
 
 }
 
-func StartCleaner(interval int, cacheDuration int) {
+func StartCleaner(interval int, cacheDuration int) { // 协程启动清理缓存
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	for {
 		<-ticker.C
 
 		start := time.Now()
-		IndexDB.Clean(int64(cacheDuration))
-		NidIndexDB.Clean(int64(cacheDuration))
+		IndexDB.Clean(int64(cacheDuration))    // 索引db 定时清理
+		NidIndexDB.Clean(int64(cacheDuration)) // 网络接口 索引定时清理
 		logger.Infof("clean took %.2f ms\n", float64(time.Since(start).Nanoseconds())*1e-6)
 	}
 }
@@ -71,7 +71,7 @@ func StartPersist(interval int) {
 	for {
 		<-ticker.C
 
-		if err := Persist("normal"); err != nil {
+		if err := Persist("normal"); err != nil { // 定时清理更新目录，给权限
 			logger.Errorf("persist error:%+v", err)
 			stats.Counter.Set("persist.err", 1)
 		}
@@ -97,7 +97,7 @@ func Rebuild(persistenceDir string, concurrency int) {
 	endpointDir := dbDir + "/endpoint"
 	nidDir := dbDir + "/nid"
 
-	if err := RebuildFromDisk(IndexDB, endpointDir, concurrency); err != nil {
+	if err := RebuildFromDisk(IndexDB, endpointDir, concurrency); err != nil { // 刷新读取endpointDir下的配置
 		logger.Warningf("rebuild index from local disk error:%+v", err)
 	}
 
@@ -119,7 +119,7 @@ func RebuildFromDisk(indexDB *EndpointIndexMap, indexFileDir string, concurrency
 	}
 	logger.Infof("There're [%d] endpoints need to rebuild", len(files))
 
-	sema := semaphore.NewSemaphore(concurrency)
+	sema := semaphore.NewSemaphore(concurrency) // 创建一个信号量
 	for _, fileObj := range files {
 		// 只处理文件
 		if fileObj.IsDir() {
@@ -127,9 +127,9 @@ func RebuildFromDisk(indexDB *EndpointIndexMap, indexFileDir string, concurrency
 		}
 		endpoint := fileObj.Name()
 
-		sema.Acquire()
+		sema.Acquire() // 获取信号
 		go func(endpoint string) {
-			defer sema.Release()
+			defer sema.Release() // 释放信号，也就是从channel 取值
 
 			metricIndexMap, err := ReadIndexFromFile(indexFileDir, endpoint)
 			if err != nil {
@@ -138,11 +138,11 @@ func RebuildFromDisk(indexDB *EndpointIndexMap, indexFileDir string, concurrency
 			}
 			// 没有标记上报过的 endpoint 需要重新上报给 monapi
 			if !metricIndexMap.IsReported() {
-				NewEndpoints.PushFront(endpoint)
+				NewEndpoints.PushFront(endpoint) // 往list 容器里面推送
 			}
 
 			indexDB.Lock()
-			indexDB.M[endpoint] = metricIndexMap
+			indexDB.M[endpoint] = metricIndexMap // 存索引db
 			indexDB.Unlock()
 		}(endpoint)
 
@@ -159,10 +159,10 @@ func Persist(mode string) error {
 		semaPermanence.Acquire()
 		defer semaPermanence.Release()
 	case "normal", "download":
-		if !semaPermanence.TryAcquire() {
+		if !semaPermanence.TryAcquire() { // 没获取到信号量，直接返回
 			return fmt.Errorf("permanence operate is already running")
 		}
-		defer semaPermanence.Release()
+		defer semaPermanence.Release() // 拿到信号量，接着释放
 	default:
 		return fmt.Errorf("wrong mode:%s", mode)
 	}
@@ -221,7 +221,7 @@ func Persist(mode string) error {
 
 	if mode == "download" {
 		idxPath := fmt.Sprintf("%s/%s", indexFileDir, "db.tar.gz")
-		if err := compress.TarGz(idxPath, tmpDir); err != nil {
+		if err := compress.TarGz(idxPath, tmpDir); err != nil { // 压缩到 idxPath
 			return err
 		}
 	}
@@ -281,15 +281,15 @@ func ReadIndexFromFile(indexDir, endpoint string) (*MetricIndexMap, error) {
 }
 
 func IndexList() []*models.Instance {
-	activeIndexes, err := report.GetAlive("index", Config.HbsMod)
+	activeIndexes, err := report.GetAlive("index", Config.HbsMod) // 拿到可用的
 	if err != nil {
 		return []*models.Instance{}
 	}
 
 	var instances []*models.Instance
 	for _, instance := range activeIndexes {
-		ident, _ := identity.GetIdent()
-		if instance.Identity != ident {
+		ident, _ := identity.GetIdent() // 获取本机身份信息
+		if instance.Identity != ident { // 除了本机实例
 			instances = append(instances, instance)
 		}
 	}
@@ -316,7 +316,7 @@ func getIndexFromRemote(instances []*models.Instance) error {
 		defer out.Close()
 
 		// Write the body to file
-		_, err = io.Copy(out, resp.Body)
+		_, err = io.Copy(out, resp.Body) // 通过 http 拿到远端请求信息，保存到本地压缩包 db.tar.gz
 		if err != nil {
 			logger.Warningf("io.Copy error:%+v", err)
 			return err

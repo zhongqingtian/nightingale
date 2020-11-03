@@ -20,7 +20,7 @@ type shell struct {
 
 var config Identity
 
-func Parse() error {
+func Parse() error { // 初始化配置
 	yml := getIdentityYmlFile()
 	if yml == "" {
 		return fmt.Errorf("etc/identity[.local].yml not found")

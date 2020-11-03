@@ -20,7 +20,7 @@ type Module struct {
 
 var (
 	lock sync.Once
-	mods map[string]Module
+	mods map[string]Module // 全局address.yaml 配置
 )
 
 func GetHTTPListen(mod string) string {
@@ -61,11 +61,11 @@ func GetHTTPAddresses(mod string) []string {
 		return []string{}
 	}
 
-	port := convPort(mod, modConf.HTTP, "http")
+	port := convPort(mod, modConf.HTTP, "http") // 从配置中获取对应数据库连接端口
 
 	addresses := make([]string, count)
 	for i := 0; i < count; i++ {
-		addresses[i] = fmt.Sprintf("%s:%d", modConf.Addresses[i], port)
+		addresses[i] = fmt.Sprintf("%s:%d", modConf.Addresses[i], port) // 真实地址:端口
 	}
 
 	return addresses
@@ -91,7 +91,7 @@ func GetRPCAddresses(mod string) []string {
 
 func getMod(modKey string) Module {
 	lock.Do(func() {
-		parseConf()
+		parseConf() // 解析一次，配置全局
 	})
 
 	mod, has := mods[modKey]
@@ -104,9 +104,9 @@ func getMod(modKey string) Module {
 }
 
 func parseConf() {
-	conf := getConf()
+	conf := getConf() // 获取地址配置路径
 
-	var c map[string]Module
+	var c map[string]Module // 把yaml配置内容读取到map
 	err := file.ReadYaml(conf, &c)
 	if err != nil {
 		fmt.Println("cannot parse file:", conf)

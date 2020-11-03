@@ -21,7 +21,7 @@ func Start() {
 	addr := address.GetRPCListen("index")
 
 	server := rpc.NewServer()
-	server.Register(new(Index))
+	server.Register(new(Index)) // 注册Index 对象下的方法对象
 
 	l, e := net.Listen("tcp", addr)
 	if e != nil {
@@ -34,7 +34,7 @@ func Start() {
 	mh.MapType = reflect.TypeOf(map[string]interface{}(nil))
 
 	for {
-		conn, err := l.Accept()
+		conn, err := l.Accept() // 等待连接请求
 		if err != nil {
 			logger.Warning("listener accept error: ", err)
 			time.Sleep(time.Duration(100) * time.Millisecond)

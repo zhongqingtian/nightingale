@@ -37,7 +37,7 @@ func init() {
 	conf = flag.String("f", "", "specify configuration file.")
 	flag.Parse()
 
-	if *vers {
+	if *vers { // 取地址值
 		fmt.Println("Version:", version)
 		os.Exit(0)
 	}
@@ -49,25 +49,25 @@ func init() {
 }
 
 func main() {
-	aconf()
-	pconf()
+	aconf() // 判断声明配置文件
+	pconf() // 解析配置文件
 	start()
 
 	cfg := config.Config
 
-	loggeri.Init(cfg.Logger)
-	go stats.Init("n9e.index")
+	loggeri.Init(cfg.Logger)   // 初始化日志配置
+	go stats.Init("n9e.index") // 初始化配置，定时推送 n9e.index前缀的数据到指定url接口
 
-	identity.Parse()
+	identity.Parse() // 解析脚本配置
 	cache.InitDB(cfg.Cache)
 
-	go report.Init(cfg.Report, "rdb")
-	go rpc.Start()
+	go report.Init(cfg.Report, "rdb") // 初始化连接上报db数据库
+	go rpc.Start() // 启动 rpc 三个接口监听
 
-	r := gin.New()
+	r := gin.New() // http gin框架服务　启动
 	routes.Config(r)
 	http.Start(r, "index", cfg.Logger.Level)
-	ending()
+	ending() // 阻塞主进程，处理优雅退出
 }
 
 // auto detect configuration file
@@ -107,12 +107,12 @@ func ending() {
 	}
 
 	logger.Close()
-	http.Shutdown()
+	http.Shutdown() // 关闭连接资源
 	fmt.Println("sender stopped successfully")
 }
 
 func start() {
-	runner.Init()
+	runner.Init() // 设置一下默认启动环境配置
 	fmt.Println("index start, use configuration file:", *conf)
 	fmt.Println("runner.Cwd:", runner.Cwd)
 	fmt.Println("runner.Hostname:", runner.Hostname)

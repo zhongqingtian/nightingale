@@ -34,7 +34,7 @@ func Init(cfg ReportSection, mod string) {
 	report(addrs)
 	for {
 		<-t1.C
-		report(addrs)
+		report(addrs) // 定时上报
 	}
 }
 
@@ -80,7 +80,7 @@ type instanceRes struct {
 
 func GetAlive(wantedMod, serverMod string) ([]*models.Instance, error) {
 	addrs := address.GetHTTPAddresses(serverMod)
-	perm := rand.Perm(len(addrs))
+	perm := rand.Perm(len(addrs)) // 随机取出 伪随机切片
 
 	timeout := 3000
 	if Config.Timeout != 0 {
@@ -89,7 +89,7 @@ func GetAlive(wantedMod, serverMod string) ([]*models.Instance, error) {
 
 	var body instanceRes
 	var err error
-	for i := range perm {
+	for i := range perm { // 伪切片获取出 ip:port ,然后
 		url := fmt.Sprintf("http://%s/api/hbs/instances?mod=%s&alive=1", addrs[perm[i]], wantedMod)
 		err = httplib.Get(url).SetTimeout(time.Duration(timeout) * time.Millisecond).ToJSON(&body)
 

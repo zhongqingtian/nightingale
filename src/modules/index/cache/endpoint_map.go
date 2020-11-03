@@ -61,9 +61,9 @@ func (e *EndpointIndexMap) Clean(timeDuration int64) {
 		}
 
 		metricIndexMap.Clean(now, timeDuration, endpoint)
-		if metricIndexMap.Len() < 1 {
+		if metricIndexMap.Len() < 1 { // 如果该map 元素值为空
 			e.Lock()
-			delete(e.M, endpoint)
+			delete(e.M, endpoint) // 去掉该节点元素
 			stats.Counter.Set("endpoint.clean", 1)
 			e.Unlock()
 			logger.Debug("clean index endpoint:", endpoint)

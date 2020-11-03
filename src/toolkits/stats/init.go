@@ -20,7 +20,7 @@ var (
 	PushUrl string = "http://127.0.0.1:2058/v1/push"
 )
 
-func Init(prefix string, addr ...string) {
+func Init(prefix string, addr ...string) { // 不同的modules 模块，main方式初始化前缀不一样的，但消息上报推向同一个 pushUrl
 	if len(addr) > 0 && addr[0] != "" {
 		//如果配置了 addr，使用 addr 参数
 		PushUrl = addr[0]
@@ -29,14 +29,14 @@ func Init(prefix string, addr ...string) {
 		//address.yml 存在，则使用配置文件的地址
 		newAddr := address.GetHTTPAddresses("agent")
 		if len(newAddr) == 0 {
-			port := address.GetHTTPPort("agent")
-			PushUrl = fmt.Sprintf("http://127.0.0.1:%d/v1/push", port)
+			port := address.GetHTTPPort("agent")                       // 直接获取配置端口
+			PushUrl = fmt.Sprintf("http://127.0.0.1:%d/v1/push", port) // 默认本机地址
 		} else {
-			PushUrl = fmt.Sprintf("http://%s/v1/push", newAddr[0])
+			PushUrl = fmt.Sprintf("http://%s/v1/push", newAddr[0]) // 初始化push 上报url
 		}
 	}
 
-	Counter = NewCounter(prefix)
+	Counter = NewCounter(prefix) // 元素上报 初始化
 	go Push()
 }
 
@@ -74,7 +74,7 @@ func push(items []*dataobj.MetricValue) {
 
 	bf := bytes.NewBuffer(bs)
 
-	resp, err := http.Post(PushUrl, "application/json", bf)
+	resp, err := http.Post(PushUrl, "application/json", bf) // 定时把数据推送到指定接口
 	if err != nil {
 		logger.Warning(err)
 		return

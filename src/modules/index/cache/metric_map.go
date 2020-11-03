@@ -62,11 +62,11 @@ func (m *MetricIndexMap) Clean(now, timeDuration int64, endpoint string) {
 	m.Lock()
 	defer m.Unlock()
 
-	for metric, metricIndex := range m.Data {
+	for metric, metricIndex := range m.Data { // 对data 切片 值一个个遍历
 		// 删除过期 tagkv
-		if now-metricIndex.Ts > timeDuration {
-			stats.Counter.Set("metric.clean", 1)
-			delete(m.Data, metric)
+		if now-metricIndex.Ts > timeDuration { // 过期
+			stats.Counter.Set("metric.clean", 1) // 先统计，清除次数
+			delete(m.Data, metric)               // 删除map data 里面的无效值
 			continue
 		}
 		metricIndex.TagkvMap.Clean(now, timeDuration)

@@ -41,7 +41,7 @@ func GetCfgYml() *ConfYaml {
 }
 
 func Parse(conf string) error {
-	bs, err := file.ReadBytes(conf)
+	bs, err := file.ReadBytes(conf) // 读取yaml字节内容
 	if err != nil {
 		return fmt.Errorf("cannot read yml[%s]: %v", conf, err)
 	}
@@ -52,7 +52,7 @@ func Parse(conf string) error {
 		return fmt.Errorf("cannot read yml[%s]: %v", conf, err)
 	}
 
-	viper.SetDefault("http.enabled", true)
+	viper.SetDefault("http.enabled", true) // 设置默认值，yaml文件没填，用默认值
 	viper.SetDefault("rpc.enabled", true)
 
 	viper.SetDefault("cache.cacheDuration", 90000)
@@ -73,7 +73,7 @@ func Parse(conf string) error {
 		"remark":   "",
 	})
 
-	err = viper.Unmarshal(&Config)
+	err = viper.Unmarshal(&Config) // 解析出配置
 	if err != nil {
 		return fmt.Errorf("unmarshal %v", err)
 	}

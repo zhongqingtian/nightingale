@@ -68,11 +68,11 @@ func (t *TagkvIndex) Clean(now, timeDuration int64) {
 
 	for k, vm := range t.Tagkv {
 		for v, ts := range vm {
-			if now-ts > timeDuration {
+			if now-ts > timeDuration { // 过期
 				delete(t.Tagkv[k], v)
 			}
 		}
-		if len(t.Tagkv[k]) == 0 {
+		if len(t.Tagkv[k]) == 0 { // 顺便检查空值
 			delete(t.Tagkv, k)
 		}
 	}

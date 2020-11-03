@@ -8,7 +8,7 @@ type CounterMetric struct {
 	metrics map[string]int
 }
 
-var Counter *CounterMetric
+var Counter *CounterMetric // 统计清理元素次数
 
 func NewCounter(prefix string) *CounterMetric {
 	return &CounterMetric{
@@ -34,7 +34,7 @@ func (c *CounterMetric) Dump() map[string]int {
 	for key, value := range c.metrics {
 		newKey := c.prefix + "." + key
 		metrics[newKey] = value
-		c.metrics[key] = 0
+		c.metrics[key] = 0 // 取值后，置0
 	}
 
 	return metrics

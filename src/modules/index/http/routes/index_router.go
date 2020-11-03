@@ -27,14 +27,14 @@ func GetMetrics(c *gin.Context) {
 	recv := EndpointsRecv{}
 	errors.Dangerous(c.ShouldBindJSON(&recv))
 
-	m := make(map[string]struct{})
+	m := make(map[string]struct{}) // map　有去重作用
 	resp := MetricList{}
 
 	if len(recv.Nids) > 0 {
 		for _, nid := range recv.Nids {
 			metrics := cache.NidIndexDB.GetMetricsBy(nid)
 			for _, metric := range metrics {
-				if _, exists := m[metric]; !exists {
+				if _, exists := m[metric]; !exists { // m map来去重
 					m[metric] = struct{}{}
 					resp.Metrics = append(resp.Metrics, metric)
 				}
