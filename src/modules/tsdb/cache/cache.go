@@ -14,11 +14,11 @@ import (
 )
 
 type CacheSection struct {
-	KeepMinutes      int `yaml:"keepMinutes"`
-	SpanInSeconds    int `yaml:"spanInSeconds"`
-	NumOfChunks      int `yaml:"numOfChunks"`
-	DoCleanInMinutes int `yaml:"doCleanInMinutes"`
-	FlushDiskStepMs  int `yaml:"flushDiskStepMs"`
+	KeepMinutes      int `yaml:"keepMinutes"`      // 存活多少分钟
+	SpanInSeconds    int `yaml:"spanInSeconds"`    // 时间间隔多少s
+	NumOfChunks      int `yaml:"numOfChunks"`      // 设置块最大数量
+	DoCleanInMinutes int `yaml:"doCleanInMinutes"` // 多少分钟清理一次
+	FlushDiskStepMs  int `yaml:"flushDiskStepMs"`  // 刷新内存间隔分钟
 }
 
 const SHARD_COUNT = 256
@@ -34,7 +34,7 @@ var (
 )
 
 type (
-	caches []*cache
+	caches []*cache // 256 个切片
 )
 
 type cache struct {
@@ -98,15 +98,15 @@ func StartCleanup() {
 }
 
 func (c *caches) Push(seriesID string, ts int64, value float64) error {
-	shard := c.getShard(seriesID)
-	existC, exist := Caches.exist(seriesID)
-	if exist {
+	shard := c.getShard(seriesID)           // 1/256  找到存储位置
+	existC, exist := Caches.exist(seriesID) // 是否存在该缓存对象
+	if exist {                              // 存在 切片数组值，就追加，不存在，先创建对象
 		shard.Lock()
-		err := existC.Push(seriesID, ts, value)
+		err := existC.Push(seriesID, ts, value) // 值和数量统计加到 256 seriesId 下的 256 个[] 块数据的一个，统计+1
 		shard.Unlock()
 		return err
 	}
-	newC := Caches.create(seriesID)
+	newC := Caches.create(seriesID) // 第一次，则新建
 	shard.Lock()
 	err := newC.Push(seriesID, ts, value)
 	shard.Unlock()
@@ -229,6 +229,6 @@ func (c caches) Cleanup(expiresInMinutes int) {
 	logger.Infof("cleanup %v Items, took %.2f ms\n", count, float64(time.Since(now).Nanoseconds())*1e-6)
 }
 
-func (c caches) getShard(key string) *cache {
+func (c caches) getShard(key string) *cache { // hash 256 个小分区
 	return c[utils.HashKey(key)%SHARD_COUNT]
 }

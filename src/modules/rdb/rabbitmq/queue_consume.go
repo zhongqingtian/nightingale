@@ -25,7 +25,7 @@ func Consume(url, queueName string) {
 				}
 			}
 
-			sleep := consume(queueName)
+			sleep := consume(queueName) // 判断消费
 			if sleep {
 				time.Sleep(300 * time.Millisecond)
 			}

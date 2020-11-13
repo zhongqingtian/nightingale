@@ -35,12 +35,12 @@ func NewChunk(t0 uint32) *Chunk {
 }
 
 func (c *Chunk) Push(t uint32, v float64) error {
-	if t <= c.LastTs {
+	if t <= c.LastTs { // 旧数据，直接丢弃
 		return fmt.Errorf("Point must be newer than already added points. t:%d v:%v,lastTs: %d\n", t, v, c.LastTs)
 	}
 	c.Series.Push(t, v)
-	c.NumPoints += 1
-	c.LastTs = t
+	c.NumPoints += 1 // 统计数量+1
+	c.LastTs = t     // 更新最新时间
 
 	return nil
 }

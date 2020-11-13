@@ -151,7 +151,7 @@ type PluginCollect struct {
 	LastUpdated time.Time `xorm:"updated" json:"last_updated"`
 }
 
-type LogCollect struct {
+type LogCollect struct { // 日志收集配置
 	Id          int64     `json:"id"`
 	Nid         int64     `json:"nid"`
 	CollectType string    `json:"collect_type"`

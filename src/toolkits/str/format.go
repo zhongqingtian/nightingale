@@ -24,21 +24,21 @@ var bufferPool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 // metric/tags
 // strs 参数必须按照上面的顺序来入参
 func PK(strs ...string) string {
-	ret := bufferPool.Get().(*bytes.Buffer)
+	ret := bufferPool.Get().(*bytes.Buffer) // 类型断言转化
 	ret.Reset()
-	defer bufferPool.Put(ret)
+	defer bufferPool.Put(ret) // 使用完对象，再放进池子
 	count := len(strs)
 	if count == 0 {
 		return ""
 	}
 
 	ret.WriteString(strs[0])
-	for i := 1; i < count-1; i++ {
+	for i := 1; i < count-1; i++ { // str[0]/str[1] / 隔开
 		ret.WriteString(SEPERATOR)
 		ret.WriteString(strs[i])
 	}
 
-	if strs[count-1] != "" {
+	if strs[count-1] != "" { // 取最后一段，凑够 三段
 		ret.WriteString(SEPERATOR)
 		ret.WriteString(strs[count-1])
 	}
@@ -102,7 +102,7 @@ func MD5(endpoint string, metric string, tags string) string {
 	return str.MD5(PK(endpoint, metric, tags))
 }
 
-func SortedTags(tags map[string]string) string {
+func SortedTags(tags map[string]string) string { // 统一处理tag格式
 	if tags == nil {
 		return ""
 	}
@@ -114,11 +114,11 @@ func SortedTags(tags map[string]string) string {
 	}
 
 	ret := bufferPool.Get().(*bytes.Buffer)
-	ret.Reset()
+	ret.Reset() // 置缓存空
 	defer bufferPool.Put(ret)
 
 	if size == 1 {
-		for k, v := range tags {
+		for k, v := range tags { // tag => k=v
 			ret.WriteString(k)
 			ret.WriteString("=")
 			ret.WriteString(v)
@@ -135,12 +135,12 @@ func SortedTags(tags map[string]string) string {
 
 	sort.Strings(keys)
 
-	for j, key := range keys {
+	for j, key := range keys { // tag => k=v,k=v
 		ret.WriteString(key)
 		ret.WriteString("=")
 		ret.WriteString(tags[key])
 		if j != size-1 {
-			ret.WriteString(",")
+			ret.WriteString(",") // 多个之间用分号隔开
 		}
 	}
 

@@ -17,16 +17,16 @@ type Strategy struct {
 	ID              int64                     `json:"id"`
 	Name            string                    `json:"name"`        //监控策略名
 	FilePath        string                    `json:"file_path"`   //文件路径
-	TimeFormat      string                    `json:"time_format"` //时间格式
-	Pattern         string                    `json:"pattern"`     //表达式
+	TimeFormat      string                    `json:"time_format"` //时间格式 日志打印时采用的时间戳格式
+	Pattern         string                    `json:"pattern"`     //表达式 正则表达式，系统会根据所配置正则逐行匹配file_path指定的日志文件
 	Exclude         string                    `json:"-"`
 	MeasurementType string                    `json:"measurement_type"`
 	Interval        int64                     `json:"interval"` //采集周期
 	Tags            map[string]string         `json:"tags"`
-	Func            string                    `json:"func"` //采集方式（max/min/avg/cnt）
-	Degree          int64                     `json:"degree"`
-	Unit            string                    `json:"unit"`
-	Comment         string                    `json:"comment"`
+	Func            string                    `json:"func"`    //采集方式（max/min/avg/cnt）
+	Degree          int64                     `json:"degree"`  // 计算精度，监控指标的值最终计算的时候采用的精度，维持默认即可
+	Unit            string                    `json:"unit"`    // 监控指标的单位，仅用作标记，并不会改变监控数值
+	Comment         string                    `json:"comment"` // 备注，描述信息
 	Creator         string                    `json:"creator"`
 	SrvUpdated      string                    `json:"updated"`
 	LocalUpdated    int64                     `json:"-"`

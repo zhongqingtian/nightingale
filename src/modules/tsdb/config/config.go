@@ -43,14 +43,14 @@ type RpcSection struct {
 }
 
 var (
-	Config *ConfYaml
+	Config *ConfYaml // 全局配置
 )
 
 func GetCfgYml() *ConfYaml {
 	return Config
 }
 
-func Parse(conf string) error {
+func Parse(conf string) error { // 解析配置
 	bs, err := file.ReadBytes(conf)
 	if err != nil {
 		return fmt.Errorf("cannot read yml[%s]: %v", conf, err)

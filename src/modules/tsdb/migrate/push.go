@@ -29,7 +29,7 @@ func Push2OldTsdbSendQueue(item *dataobj.TsdbItem) {
 
 func Push2NewTsdbSendQueue(item *dataobj.TsdbItem) {
 	var errCnt int
-	node, err := NewTsdbNodeRing.GetNode(item.PrimaryKey())
+	node, err := NewTsdbNodeRing.GetNode(item.PrimaryKey()) // 理解返回 hash 散列后数据
 	if err != nil {
 		logger.Error("E:", err)
 		return
@@ -37,7 +37,7 @@ func Push2NewTsdbSendQueue(item *dataobj.TsdbItem) {
 
 	Q := NewTsdbQueues[node]
 	logger.Debug("->push queue: ", item)
-	if !Q.PushFront(item) {
+	if !Q.PushFront(item) { // 添加到队列
 		errCnt += 1
 	}
 

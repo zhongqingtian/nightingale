@@ -9,7 +9,7 @@ import (
 
 type CS struct {
 	Chunks          []*Chunk
-	CurrentChunkPos int
+	CurrentChunkPos int // 记录当切片 chunk块的位置 数量
 	flag            uint32
 
 	sync.RWMutex
@@ -23,55 +23,55 @@ func NewChunks(numOfChunks int) *CS {
 
 func (cs *CS) Push(seriesID string, ts int64, value float64) error {
 	//找到当前chunk的起始时间
-	t0 := uint32(ts - (ts % int64(Config.SpanInSeconds)))
+	t0 := uint32(ts - (ts % int64(Config.SpanInSeconds))) // 按照时间间隔统计，t0为这一时间区间的起始时间
 
 	// 尚无chunk
-	if len(cs.Chunks) == 0 {
+	if len(cs.Chunks) == 0 { // 每个cache 有很多块里面 存切片 按照时间段统计 数据
 		c := NewChunk(uint32(t0))
 		c.FirstTs = uint32(ts)
 		cs.Chunks = append(cs.Chunks, c)
 
-		return cs.Chunks[0].Push(uint32(ts), value)
+		return cs.Chunks[0].Push(uint32(ts), value) // 统计这个区间的次数+1
 	}
 
 	// push到当前chunk
 	currentChunk := cs.GetChunk(cs.CurrentChunkPos)
-	if t0 == currentChunk.T0 {
-		if currentChunk.Closed {
+	if t0 == currentChunk.T0 { // 时间处于最新区间
+		if currentChunk.Closed { // 当前块没有关闭，才进行统计次数+1
 			return fmt.Errorf("push to closed chunk")
 		}
 
-		return currentChunk.Push(uint32(ts), value)
+		return currentChunk.Push(uint32(ts), value) // 统计+1
 	}
 
-	if t0 < currentChunk.T0 {
+	if t0 < currentChunk.T0 { // 传输数据时间落后于当前区间，不统计本次
 		return fmt.Errorf("data @%v, timestamp old than previous chunk. currentchunk t0: %v\n", t0, currentChunk.T0)
 	}
 
 	// 需要新建chunk
 	// 先finish掉现有chunk
-	if !currentChunk.Closed {
+	if !currentChunk.Closed { // 否则，数据块超前，新建数据块，关闭本块数据
 		currentChunk.FinishSync()
 		ChunksSlots.Push(seriesID, currentChunk)
 	}
 
 	// 超过chunks限制, pos回绕到0
 	cs.CurrentChunkPos++
-	if cs.CurrentChunkPos >= int(Config.NumOfChunks) {
+	if cs.CurrentChunkPos >= int(Config.NumOfChunks) { // 块下标数量，如果大于最大块设置的数量，初始化从0开始
 		cs.CurrentChunkPos = 0
 	}
 
 	// chunks未满, 直接append即可
-	if len(cs.Chunks) < int(Config.NumOfChunks) {
+	if len(cs.Chunks) < int(Config.NumOfChunks) { // 未达到块最大数量。直接新建，追加
 		c := NewChunk(uint32(t0))
 		c.FirstTs = uint32(ts)
 		cs.Chunks = append(cs.Chunks, c)
 
 		return cs.Chunks[cs.CurrentChunkPos].Push(uint32(ts), value)
-	} else {
+	} else { // 否则新建，替换[0]旧的块是数据
 		c := NewChunk(uint32(t0))
 		c.FirstTs = uint32(ts)
-		cs.Chunks[cs.CurrentChunkPos] = c
+		cs.Chunks[cs.CurrentChunkPos] = c // 替换切片[0]开始的位置，从头开始存储块数据
 
 		return cs.Chunks[cs.CurrentChunkPos].Push(uint32(ts), value)
 	}
@@ -81,7 +81,7 @@ func (cs *CS) Push(seriesID string, ts int64, value float64) error {
 
 func (cs *CS) Get(from, to int64) []Iter {
 	// 这种case不应该发生
-	if from >= to {
+	if from >= to { // 起始时间范围判断
 		return nil
 	}
 

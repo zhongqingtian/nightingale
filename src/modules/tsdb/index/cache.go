@@ -29,7 +29,7 @@ func NewIndexCacheItem(uuid string, item *dataobj.TsdbItem) *IndexCacheItem {
 type IndexCacheBase struct {
 	sync.RWMutex
 	maxSize int
-	data    map[string]*dataobj.TsdbItem
+	data    map[string]*dataobj.TsdbItem // rpc 请求过来的接口参数，缓存统计在map
 }
 
 func NewIndexCacheBase(max int) *IndexCacheBase {

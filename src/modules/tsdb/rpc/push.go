@@ -19,7 +19,7 @@ import (
 
 const MaxRRAPointCnt = 730 // 每次查询最多返回的点数
 
-type Tsdb int
+type Tsdb int // rpc 三个接口
 
 func (t *Tsdb) Ping(req dataobj.NullRpcRequest, resp *dataobj.SimpleRpcResponse) error {
 	return nil
@@ -28,7 +28,7 @@ func (t *Tsdb) Ping(req dataobj.NullRpcRequest, resp *dataobj.SimpleRpcResponse)
 func (t *Tsdb) Send(items []*dataobj.TsdbItem, resp *dataobj.SimpleRpcResponse) error {
 	stats.Counter.Set("push.qp10s", 1)
 
-	go handleItems(items)
+	go handleItems(items) // 统计元素图谱
 	return nil
 }
 
@@ -49,33 +49,33 @@ func handleItems(items []*dataobj.TsdbItem) {
 
 	var cnt, fail int64
 	for i := 0; i < count; i++ {
-		if items[i] == nil {
+		if items[i] == nil { // 过滤无效数据
 			continue
 		}
-		stats.Counter.Set("points.in", 1)
+		stats.Counter.Set("points.in", 1) // 统计点+1
 
-		item := convert2CacheServerItem(items[i])
+		item := convert2CacheServerItem(items[i]) // 把req接口数据转化到内存缓存数据格式
 
-		if err := cache.Caches.Push(item.Key, item.Timestamp, item.Value); err != nil {
-			stats.Counter.Set("points.in.err", 1)
+		if err := cache.Caches.Push(item.Key, item.Timestamp, item.Value); err != nil { // 添加到现有缓存
+			stats.Counter.Set("points.in.err", 1) // 统计添加失败次数
 			logger.Warningf("push obj error, obj: %v, error: %v\n", items[i], err)
 			fail++
 		}
 		cnt++
 
-		index.ReceiveItem(items[i], item.Key)
+		index.ReceiveItem(items[i], item.Key) // // index收到一条新上报的监控数据,尝试用于增量更新索引
 
 		if migrate.Config.Enabled {
 			//曲线要迁移到新的存储实例，将数据转发给新存储实例
 			if cache.Caches.GetFlag(item.Key) == rrdtool.ITEM_TO_SEND && items[i].From != dataobj.GRAPH { //转发数据
-				migrate.Push2NewTsdbSendQueue(items[i])
-			} else {
+				migrate.Push2NewTsdbSendQueue(items[i]) // 转发推送到时序数据队列
+			} else { // 其他类型
 				rrdFile := utils.RrdFileName(rrdtool.Config.Storage, item.Key, items[i].DsType, items[i].Step)
 				//本地文件不存在，应该是新实例，去旧实例拉取文件
 				if !file.IsExist(rrdFile) && !migrate.QueueCheck.Exists(item.Key) {
 					//在新实例rrd文件没有拉取到本地之前，数据要从旧实例查询，要保证旧实例数据完整性
 					if items[i].From != dataobj.GRAPH {
-						migrate.Push2OldTsdbSendQueue(items[i])
+						migrate.Push2OldTsdbSendQueue(items[i]) // 添加到旧到数据队列
 					}
 					node, err := migrate.TsdbNodeRing.GetNode(items[i].PrimaryKey())
 					if err != nil {
@@ -103,7 +103,7 @@ func convert2CacheServerItem(d *dataobj.TsdbItem) cache.Point {
 		d.Endpoint = dataobj.NidToEndpoint(d.Nid)
 	}
 	p := cache.Point{
-		Key:       str.Checksum(d.Endpoint, d.Metric, str.SortedTags(d.TagsMap)),
+		Key:       str.Checksum(d.Endpoint, d.Metric, str.SortedTags(d.TagsMap)), // 摘要key
 		Timestamp: d.Timestamp,
 		Value:     d.Value,
 	}

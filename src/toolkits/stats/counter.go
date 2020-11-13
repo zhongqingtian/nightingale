@@ -5,15 +5,15 @@ import "sync"
 type CounterMetric struct {
 	sync.RWMutex
 	prefix  string
-	metrics map[string]int
+	metrics map[string]int // 统计一些，错误或者请求接口 的数量
 }
 
-var Counter *CounterMetric // 统计清理元素次数
+var Counter *CounterMetric // 统计qps
 
 func NewCounter(prefix string) *CounterMetric {
 	return &CounterMetric{
 		metrics: make(map[string]int),
-		prefix:  prefix,
+		prefix:  prefix, // 设置前缀，每个对象唯一，取值时候，用于拼接key
 	}
 }
 
@@ -27,7 +27,7 @@ func (c *CounterMetric) Set(metric string, value int) {
 	}
 }
 
-func (c *CounterMetric) Dump() map[string]int {
+func (c *CounterMetric) Dump() map[string]int { // 取值后，旧数据清理
 	c.Lock()
 	defer c.Unlock()
 	metrics := make(map[string]int)

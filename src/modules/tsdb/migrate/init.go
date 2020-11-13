@@ -14,7 +14,7 @@ import (
 type MigrateSection struct {
 	Batch       int               `yaml:"batch"`
 	Concurrency int               `yaml:"concurrency"` //number of multiple worker per node
-	Enabled     bool              `yaml:"enabled"`
+	Enabled     bool              `yaml:"enabled"`     // 是否要迁移到新的存储实例
 	Replicas    int               `yaml:"replicas"`
 	OldCluster  map[string]string `yaml:"oldCluster"`
 	NewCluster  map[string]string `yaml:"newCluster"`

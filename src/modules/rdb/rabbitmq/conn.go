@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	conn *amqp.Connection
+	conn *amqp.Connection // 全局存 mq 连接句柄
 	exit = make(chan bool)
 )
 
@@ -35,7 +35,7 @@ func ping() (err error) {
 	}
 
 	defer ch.Close()
-
+	// 声明topic
 	err = ch.ExchangeDeclare("ping.ping", "topic", false, true, false, true, nil)
 	if err != nil {
 		logger.Error(err)
@@ -43,7 +43,7 @@ func ping() (err error) {
 	}
 
 	msgContent := "ping.ping"
-	err = ch.Publish("ping.ping", "ping.ping", false, false, amqp.Publishing{
+	err = ch.Publish("ping.ping", "ping.ping", false, false, amqp.Publishing{ // 测试推一条消息
 		ContentType: "text/plain",
 		Body:        []byte(msgContent),
 	})
@@ -51,7 +51,7 @@ func ping() (err error) {
 		logger.Error(err)
 		return err
 	}
-	err = ch.ExchangeDelete("ping.ping", false, false)
+	err = ch.ExchangeDelete("ping.ping", false, false) // 删除 topic
 	if err != nil {
 		logger.Error(err)
 	}

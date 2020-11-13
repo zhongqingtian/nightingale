@@ -12,8 +12,8 @@ import (
 
 type Stra struct {
 	Id                  int64     `json:"id"`
-	Name                string    `json:"name"`
-	Category            int       `json:"category"` //机器，非机器
+	Name                string    `json:"name"`     // 策略名称
+	Category            int       `json:"category"` //机器，非机器 1/0
 	Nid                 int64     `json:"nid"`
 	ExclNidStr          string    `xorm:"excl_nid" json:"-"`            //排除的叶子节点
 	AlertDur            int       `json:"alert_dur"`                    //单位秒，持续异常10分钟则产生异常event
@@ -23,7 +23,7 @@ type Stra struct {
 	TagsStr             string    `xorm:"tags" json:"-"`                //tag过滤条件
 	EnableStime         string    `json:"enable_stime"`                 //策略生效开始时间
 	EnableEtime         string    `json:"enable_etime"`                 //策略生效终止时间 支持23:00-02:00
-	EnableDaysOfWeekStr string    `xorm:"enable_days_of_week" json:"-"` //策略生效日期
+	EnableDaysOfWeekStr string    `xorm:"enable_days_of_week" json:"-"` //策略生效日期,一周中，哪几天生效
 	ConvergeStr         string    `xorm:"converge" json:"-"`            //告警通知收敛，第1个值表示收敛周期，单位秒，第2个值表示周期内允许发送告警次数
 	Priority            int       `json:"priority"`
 	Callback            string    `json:"callback"`

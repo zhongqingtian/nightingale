@@ -23,7 +23,7 @@ func FetchData(start, end int64, consolFun, endpoint, counter string, step int) 
 	}
 
 	qparm := GenQParam(start, end, consolFun, endpoint, counter, step)
-	resp, err := QueryOne(qparm)
+	resp, err := QueryOne(qparm) // 通过rpc 接口查询
 	if err != nil {
 		return []*dataobj.RRDData{}, err
 	}

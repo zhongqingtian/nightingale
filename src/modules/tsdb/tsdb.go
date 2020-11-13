@@ -23,7 +23,7 @@ import (
 	"github.com/toolkits/pkg/runner"
 )
 
-var (
+var ( // 全局常量
 	vers *bool
 	help *bool
 	conf *string
@@ -51,7 +51,7 @@ func init() {
 func main() {
 	aconf()
 	pconf()
-	start()
+	start() // 设置一些启动前系统参数
 
 	cfg := config.Config
 

@@ -55,13 +55,13 @@ type TsdbQueryResponse struct {
 }
 
 type TsdbItem struct {
-	Nid       string            `json:"nid"`
+	Nid       string            `json:"nid"` // 网络接口id标识
 	Endpoint  string            `json:"endpoint"`
 	Metric    string            `json:"metric"`
 	Tags      string            `json:"tags"`
 	TagsMap   map[string]string `json:"tagsMap"`
 	Value     float64           `json:"value"`
-	Timestamp int64             `json:"timestamp"`
+	Timestamp int64             `json:"timestamp"` // 事件发生的时间戳
 	DsType    string            `json:"dstype"`
 	Step      int               `json:"step"`
 	Heartbeat int               `json:"heartbeat"`
@@ -104,13 +104,13 @@ func (t *TsdbItem) UUID() string {
 
 // ConsolFunc 是RRD中的概念，比如：MIN|MAX|AVERAGE
 type TsdbQueryParam struct {
-	Start      int64  `json:"start"`
-	End        int64  `json:"end"`
+	Start      int64  `json:"start"` // 起始时间段
+	End        int64  `json:"end"`   // 截止时间段
 	ConsolFunc string `json:"consolFunc"`
 	Nid        string `json:"nid"`
 	Endpoint   string `json:"endpoint"`
 	Counter    string `json:"counter"`
-	Step       int    `json:"step"`
+	Step       int    `json:"step"` // 区间
 	DsType     string `json:"dsType"`
 }
 

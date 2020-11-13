@@ -59,7 +59,7 @@ func ReceiveItem(item *dataobj.TsdbItem, hash string) {
 	var indexedItemCache *IndexCacheBase
 	var unIndexedItemCache *IndexCacheBase
 
-	indexedItemCache = IndexedItemCacheBigMap[int(hashKey(hash)%INDEX_SHARD)]
+	indexedItemCache = IndexedItemCacheBigMap[int(hashKey(hash)%INDEX_SHARD)] // 已经初始化，正常来说，返回一个统计对象
 	unIndexedItemCache = UnIndexedItemCacheBigMap[int(hashKey(hash)%INDEX_SHARD)]
 
 	if indexedItemCache == nil {
@@ -68,7 +68,7 @@ func ReceiveItem(item *dataobj.TsdbItem, hash string) {
 	}
 	// 已上报过的数据
 	stats.Counter.Set("index.in", 1)
-	if indexedItemCache.ContainsKey(hash) {
+	if indexedItemCache.ContainsKey(hash) { // 上报过的，直接更新
 		indexedItemCache.Put(hash, item)
 		return
 	}

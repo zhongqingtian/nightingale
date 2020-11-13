@@ -15,7 +15,7 @@ type Config struct {
 
 // InitLogger init logger toolkit
 func Init(c Config) {
-	lb, err := logger.NewFileBackend(c.Dir)
+	lb, err := logger.NewFileBackend(c.Dir) // 初始化日志
 	if err != nil {
 		fmt.Println("cannot init logger:", err)
 		os.Exit(1)

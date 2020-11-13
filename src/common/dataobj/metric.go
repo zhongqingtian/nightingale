@@ -22,17 +22,41 @@ const (
 	MachineIndep = 2
 )
 
+/*
+  {
+        "metric": "api.latency",
+        "endpoint": "10.86.12.13",
+        "tags": "api=/api/v1/auth/login,srv=n9e,mod=monapi,idc=bj",
+        "value": 5.4,
+        "timestamp": 1554455574,
+        "step": 20
+    }
+{
+        "metric": "api.latency",
+        "endpoint": "10.86.12.13",
+        "tagsMap": {
+          "api": "/api/v1/auth/login",
+          "srv": "n9e",
+          "mod": "monapi",
+          "idc": "bj"
+        },
+        "value": 5.4,
+        "timestamp": 1554455574,
+        "step": 20
+    }
+*/
+// rpc 接口 监控指标值推给transfer
 type MetricValue struct {
-	Nid          string            `json:"nid"`
-	Metric       string            `json:"metric"`
-	Endpoint     string            `json:"endpoint"`
-	Timestamp    int64             `json:"timestamp"`
-	Step         int64             `json:"step"`
+	Nid          string            `json:"nid"`       // nid 是监控数据所关联的服务节点的id（设备无关的监控数据必填）
+	Metric       string            `json:"metric"`    // metric是监控指标名称 "disk.io.util"
+	Endpoint     string            `json:"endpoint"`  // 监控实体（设备相关的监控数据必填）
+	Timestamp    int64             `json:"timestamp"` // 当前时间戳，单位是秒
+	Step         int64             `json:"step"`      // 监控数据的上报周期
 	ValueUntyped interface{}       `json:"value"`
-	Value        float64           `json:"-"`
-	CounterType  string            `json:"counterType"`
-	Tags         string            `json:"tags"`
-	TagsMap      map[string]string `json:"tagsMap"` //保留2种格式，方便后端组件使用
+	Value        float64           `json:"-"`           // 监控指标的当前值
+	CounterType  string            `json:"counterType"` // 指标类型，支持GAUGE和COUNTER 默认为GAUGE
+	Tags         string            `json:"tags"`        // 监控数据的属性标签
+	TagsMap      map[string]string `json:"tagsMap"`     //保留2种格式，方便后端组件使用
 	Extra        string            `json:"extra"`
 }
 
